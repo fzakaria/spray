@@ -113,11 +113,11 @@ class SecurityDirectivesSpec extends RoutingSpec {
       def verifyId(id: String): Option[Boolean] = {
         Some(id == userId)
       }
-      val session = Session.deserialize(Map("userId" -> userId))
-      println(Get("/rememberme") ~> addHeader(`Set-Cookie`(Session.encodeAsCookie(session))))
-      Get("/rememberme") ~> addHeader(`Set-Cookie`(Session.encodeAsCookie(session))) ~> {
+      //The key name `SPRAY-USER` is important as its the current default when no config is given.
+      val session = Session.deserialize(Map("SPRAY-USER" -> userId))
+      Get("/rememberme") ~> addHeader(Cookie(Session.encodeAsCookie(session))) ~> {
         authenticate(SessionLoginAuth(verifyId)) { foundUser ⇒ complete { foundUser.toString } }
-      } ~> check { responseAs[String] === true.toString }
+      } ~> check { responseAs[String] === Some(true).toString }
     }
   }
 }

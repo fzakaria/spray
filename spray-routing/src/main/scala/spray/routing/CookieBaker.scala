@@ -114,7 +114,6 @@ trait CookieBaker[T <: AnyRef] {
    */
   def encodeAsCookie(data: T): HttpCookie = {
     val cookie = encode(serialize(data))
-    println("HERE HERE: " + cookie)
     HttpCookie(name = COOKIE_NAME, content = cookie, maxAge = maxAge, path = Some(path), domain = domain,
       secure = secure, httpOnly = httpOnly)
   }
@@ -123,7 +122,7 @@ trait CookieBaker[T <: AnyRef] {
    * Decodes the data from a `Cookie`.
    */
   def decodeFromCookie(cookie: Option[HttpCookie]): T = {
-    cookie.filter(_.name == COOKIE_NAME).map(c ⇒ deserialize(decode(c.value))).getOrElse(emptyCookie)
+    cookie.filter(_.name == COOKIE_NAME).map(c ⇒ deserialize(decode(c.content))).getOrElse(emptyCookie)
   }
 
   def discard = HttpCookie(name = COOKIE_NAME, content = "",
