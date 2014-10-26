@@ -16,7 +16,8 @@
 
 package spray.routing
 
-import scala.concurrent.Future
+import scala.concurrent._
+import spray.routing.directives._
 
 package object authentication {
   //# auth-types
@@ -25,7 +26,8 @@ package object authentication {
   //#
   //# user-pass-authenticator
   type UserPassAuthenticator[T] = Option[UserPass] ⇒ Future[Option[T]]
-  //#
+  //# session authenticator
+  type UserSessionAuthenticator[T] = Option[Session] ⇒ Future[Authentication[Option[T]]]
 }
 
 package authentication {

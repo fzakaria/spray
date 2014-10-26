@@ -22,8 +22,15 @@ import spray.routing.authentication._
 import spray.http._
 import HttpHeaders._
 import AuthenticationFailedRejection._
+import spray.httpx.marshalling.Marshaller
 
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
 class SecurityDirectivesSpec extends RoutingSpec {
+
+  override def testConfigSource = """spray.session { }""".stripMargin
 
   val dontAuth = BasicAuth(UserPassAuthenticator[BasicUserContext](_ ⇒ Future.successful(None)), "Realm")
   val challenge = `WWW-Authenticate`(HttpChallenge("Basic", "Realm"))
@@ -96,6 +103,21 @@ class SecurityDirectivesSpec extends RoutingSpec {
         check { responseAs[String] === "1" }
       Get() ~> Host("spray.io") ~> route ~>
         check { responseAs[String] === "2" }
+    }
+  }
+
+  "The 'authenticate(<UserSessionAuthenticator>)' directive" should {
+    "extract the object representing the user identity in the session given created by successful authentication" in {
+
+      val userId = "1"
+      def verifyId(id: String): Option[Boolean] = {
+        Some(id == userId)
+      }
+      val session = Session.deserialize(Map("userId" -> userId))
+      println(Get("/rememberme") ~> addHeader(`Set-Cookie`(Session.encodeAsCookie(session))))
+      Get("/rememberme") ~> addHeader(`Set-Cookie`(Session.encodeAsCookie(session))) ~> {
+        authenticate(SessionLoginAuth(verifyId)) { foundUser ⇒ complete { foundUser.toString } }
+      } ~> check { responseAs[String] === true.toString }
     }
   }
 }

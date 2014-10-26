@@ -20,6 +20,8 @@ import akka.actor.ActorSystem
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory._
 import scala.collection.immutable.ListMap
+import com.typesafe.config._
+import com.typesafe.config.ConfigFactory
 
 abstract class SettingsCompanion[T](prefix: String) {
   private final val MaxCached = 8
@@ -47,8 +49,34 @@ abstract class SettingsCompanion[T](prefix: String) {
       .withFallback(defaultReference(getClass.getClassLoader)))
 
   def apply(config: Config): T =
-    fromSubConfig(config getConfig prefix)
+    fromSubConfig(getConfigSafe(config getConfig prefix))
 
   def fromSubConfig(c: Config): T
+
+  /**
+   * *
+   * This method will simply return an empty config if
+   * the prefix does not exist.
+   */
+  protected def getConfigSafe(v: ⇒ Config): Config = {
+    try {
+      v
+    } catch {
+      case e: ConfigException.Missing ⇒ ConfigFactory.empty()
+    }
+  }
+
+  /**
+   * Read a value from the underlying implementation,
+   * catching Errors and wrapping it in an Option value.
+   */
+  protected def readValue[T](v: ⇒ T): Option[T] = {
+    try {
+      Option(v)
+    } catch {
+      case e: ConfigException.Missing ⇒ None
+    }
+  }
+
 }
 

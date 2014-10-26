@@ -61,4 +61,9 @@ object AuthMagnet {
 
   implicit def fromContextAuthenticator[T](auth: ContextAuthenticator[T])(implicit executor: ExecutionContext): AuthMagnet[T] =
     new AuthMagnet(extract(auth).flatMap(onSuccess(_)))
+
+  import SessionDirectives._
+  implicit def fromSessionCookieAuthenticator[T](auth: UserSessionAuthenticator[T])(implicit executor: ExecutionContext): AuthMagnet[Option[T]] = {
+    new AuthMagnet(optionalSession.map(auth(_)).flatMap(onSuccess(_)))
+  }
 }
