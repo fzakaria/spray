@@ -24,13 +24,7 @@ import HttpHeaders._
 import AuthenticationFailedRejection._
 import spray.httpx.marshalling.Marshaller
 
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
-
-@RunWith(classOf[JUnitRunner])
 class SecurityDirectivesSpec extends RoutingSpec {
-
-  override def testConfigSource = """spray.session { }""".stripMargin
 
   val dontAuth = BasicAuth(UserPassAuthenticator[BasicUserContext](_ ⇒ Future.successful(None)), "Realm")
   val challenge = `WWW-Authenticate`(HttpChallenge("Basic", "Realm"))
